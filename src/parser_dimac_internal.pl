@@ -52,13 +52,6 @@ normalize([Line0|Lines0],[Line1|Lines1]) :-
 	normalize(Lines0,Lines1).
 normalize([],[]).
 
-/*
-filter_empty([[]|Ls0],Ls1) :-
-	filter_empty(Ls0,Ls1).
-filter_empty([L|Ls0],[L|Ls1]) :-
-	dif(L,[]),
-	filter_empty(Ls0,Ls1).
-*/
 
 %% decomment
 decomment([Line0|Lines0],Lines1) :-
