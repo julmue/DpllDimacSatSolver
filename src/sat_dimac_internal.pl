@@ -1,4 +1,4 @@
-:- module(sat_dimac_internal,[  sat_internal/3,
+:- module(sat_dimac_internal,[  sat_internal/2,
                                 dpll/2,
                                 dpll/3,
                                 vars_dimac/2,
@@ -13,18 +13,11 @@
 :- use_module(library(readutil)).
 
 
-
-
-/** vars_dimac
- *
- * Extracts a list of variables from DIMAC CNF
- */
-
-
 vars_dimac(DIMAC,Unique) :-
     flatten(DIMAC,I1),
     to_positive(I1,I2),
     list_to_set(I2,Unique).
+
 
 to_positive([Z|Zs],[N|Ns]) :-
     (   (0 > Z) ->
@@ -34,72 +27,56 @@ to_positive([Z|Zs],[N|Ns]) :-
 to_positive([],[]).
 
 
-
-/** assign_free_vars
- *
- * Assigns a free Prolog variable to every element of a list.
- */
-
 assign_free_vars([Head0|Tail0],[(Head0,_)|Tail1]) :-
     assign_free_vars(Tail0,Tail1).
 assign_free_vars([],[]).
 
 
-/** simpl
-*/
-
-%% case 1: var is 'T' and appears unnegated in line - skip line
-simpl((Var,Value),[Line0|Lines0],Result) :-
-    NegVar is 0 - Var,
-    (   (member(Var,Line0), Value = 'T') ->
-            simpl((Var,Value),Lines0,Lines1),
-            Result = Lines1
-    ;   (member(NegVar,Line0), Value = 'F') ->
-            simpl((Var,Value),Lines0,Lines1),
-            Result = Lines1
-    ;   simpl_line((Var,Value),Line0,Line1),
-        simpl((Var,Value),Lines0,Lines1),
-            Result = [Line1|Lines1]
-    ).
+simpl((Var,'T'),[Line0|Lines0], Lines1) :-
+	member(Var,Line0),
+	simpl((Var,'T'),Lines0,Lines1).
+simpl((Var,'F'),[Line0|Lines0], Lines1) :-
+	NegVar is 0 - Var,
+	member(NegVar,Line0),
+	simpl((Var,'F'),Lines0,Lines1).
+simpl((Var,Value),[Line0|Lines0], [Line1|Lines1]) :-
+	NegVar is 0 - Var,
+	\+ (member(Var,Line0), Value = 'T'),
+	\+ (member(NegVar,Line0), Value = 'F'),
+	simpl_line((Var,Value),Line0,Line1),
+	simpl((Var,Value),Lines0,Lines1).
 simpl((_,_),[],[]).
 
-%% case : var is 'F' and appears unnegated in line - remove var from line
+
 simpl_line((Var,'F'),Line0,Line1) :-
     member(Var,Line0),
     subtract(Line0,[Var],Line1).
-
-%% case:
 simpl_line((Var,'T'),Line0,Line1) :-
     NegVar is 0 - Var,
     member(NegVar,Line0),
     subtract(Line0,[NegVar],Line1).
-
 simpl_line((Var,_),Line0,Line0) :-
     NegVar is 0 - Var,
     \+ member(Var,Line0),
     \+ member(NegVar,Line0).
 
 
-dpll(Dimac, Bool ,Model) :-
+dpll(Dimac, Model) :-
     vars_dimac(Dimac,Vars),
     assign_free_vars(Vars,VarsValues),
-    (   dpll(VarsValues,Dimac) ->
-        VarsValues = Model,
-        Bool = true
-    ;   Model = [],
-        Bool = false
-    ).
+    dpll(VarsValues,Dimac,[]),
+	Model = VarsValues.
 
-dpll([(Var,Value)|VarValues], Dimac0) :-
+dpll([(Var,Value)|VarValues],Dimac0,Dimac1) :-
     boolean(Value),
-    simpl((Var,Value),Dimac0,Dimac1),
-    dpll(VarValues,Dimac1).
-dpll(_,[]).
+    simpl((Var,Value),Dimac0,IDimac),
+    dpll(VarValues,IDimac,Dimac1).
+dpll([],Dimac,Dimac).
 
-sat_internal(DimacCodes,Bool,Model) :-
+
+sat_internal(DimacCodes,Model) :-
     parse_dimac(DimacCodes,Dimac),
-    dpll(Dimac,Bool,Model).
-
+    dpll(Dimac,Model).
 
 
 boolean('T').

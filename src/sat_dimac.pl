@@ -17,11 +17,11 @@ main :-
 	;
 		Args = [File] ->
 			read_file_to_codes(File,CodesDimac,[]),
-			sat_internal(CodesDimac,Bool,Model),
-			write(Bool),
-			nl,
-            write(Model),
-			halt
+			(	sat_internal(CodesDimac,Model) ->
+				write(true), nl,
+				write(Model), nl,
+				halt
+			;	write(false), nl,
+				halt
+			)
 	).
-
-

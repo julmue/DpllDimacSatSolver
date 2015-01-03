@@ -16,7 +16,6 @@ for the grammar definition consult /docu/DIMAC_CNF.md.
 */
 
 
-
 parse_dimac(In,Out) :-
 	[Sep] = "\n",
 	break_at(In,Sep,I1),
@@ -33,7 +32,6 @@ break_at(String,Seperator,[Line1 | Lines]) :-
 	break_at(RemString,Seperator,Lines).
 
 
-%% break_at_first(String,Seperator,Head,Tail)
 break_at_first(String,Seperator,Head,Tail) :-
 	break_at_first(String,Seperator,[],Head,Tail).
 %% break_at_first(String,Seperator,Acc,Head,Tail)
@@ -45,6 +43,7 @@ break_at_first([C|Cs0],C,Acc,Head,Cs0) :-
 break_at_first([],_,Acc,Head,[]) :-
 	reverse(Acc,Head).
 
+
 normalize([Line0|Lines0],[Line1|Lines1]) :-
     atom_codes(LI1,Line0),
 	normalize_space(atom(LI2),LI1),
@@ -53,7 +52,6 @@ normalize([Line0|Lines0],[Line1|Lines1]) :-
 normalize([],[]).
 
 
-%% decomment
 decomment([Line0|Lines0],Lines1) :-
 	atom_codes(LI1,Line0),
 	normalize_space(atom(LI2),LI1),
@@ -65,7 +63,6 @@ decomment([Line|Lines0],[Line|Lines1]) :-
 decomment([],[]).
 
 
-%% Strip Dimac Header
 strip_dimac_header([_|Tail],Tail).
 
 
@@ -77,18 +74,18 @@ filter_empty([Line|Lines0],[Line|Lines1]) :-
 	filter_empty(Lines0,Lines1).
 
 
-
-%% Convert Lines
 convert_lines([L0|Ls0],[L1|Ls1]) :-
 	convert_line(L0,L1),
 	convert_lines(Ls0,Ls1).
 convert_lines([],[]).
+
 
 convert_line(Line0,Line1) :-
 	atom_codes(LI1,Line0),
 	normalize_space(atom(LI2),LI1),
 	atomic_list_concat(LI3,' ',LI2),
 	atom_number_line(LI3,Line1).
+
 
 atom_number_line([],[]).
 atom_number_line([A|As],[N|Ns]) :-

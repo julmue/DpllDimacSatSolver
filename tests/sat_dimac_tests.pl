@@ -84,16 +84,16 @@
         DIMAC = [[1]],
         vars_dimac(DIMAC,Vars),
         assign_free_vars(Vars,VarsValues),
-        dpll(VarsValues,DIMAC).
+        dpll(VarsValues,DIMAC,_).
 
     test(dpll_2,fail) :-
         DIMAC = [[1],[-1]],
         vars_dimac(DIMAC,Vars),
         assign_free_vars(Vars,VarsValues),
-        dpll(VarsValues,DIMAC).
+        dpll(DIMAC,_).
 
     test(dpll_3) :-
         read_file_to_codes('./testdata/testfile1.cnf',DimacCodes,[]),
-        sat_internal(DimacCodes,true,_).
+        sat_internal(DimacCodes,_).
 
 :- end_tests(dpll).
