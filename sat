@@ -1,0 +1,3 @@
+#!/bin/bash
+
+swipl -q -t main -f "./src/sat_dimac.pl" $*
