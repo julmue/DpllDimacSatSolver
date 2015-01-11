@@ -60,6 +60,40 @@ simpl_line((Var,_),Line0,Line0) :-
     \+ member(Var,Line0),
     \+ member(NegVar,Line0).
 
+empty_clause(dimac0) :-
+    element([],dimac0).
+
+assign_unit_clauses(VarValues,Dimac0,Dimac1) :-
+    get_unit_clauses(Dimac0,Units),
+    (   dif(Units,[]) ->
+        !,
+        remove_units(Units,VarValues,Dimac0,IDimac1),
+        assign_unit_clauses(VarValues,IDimac1,Dimac1)
+    ;   !, Dimac0 = Dimac1
+    ).
+assign_unit_clauses(_,Dimac0,Dimac0) :-
+    get_unit_clauses(Dimac0,[]).
+
+
+get_unit_clauses([[Unit]|Lines],[Unit|Units]) :-
+    get_unit_clauses(Lines,Units).
+get_unit_clauses([Line|Lines],Units) :-
+    dif(Line,[_]),
+    get_unit_clauses(Lines,Units).
+get_unit_clauses([],[]).
+
+
+remove_units([Var|Vars],VarValues,Dimac0,Dimac1) :-
+    (   Var < 0 ->
+            PosVar is 0 - (Var),
+            VarValue = (PosVar,'F')
+    ;   VarValue = (Var,'T')
+    ),
+    member(VarValue,VarValues),
+    simpl(VarValue,Dimac0,IDimac1),
+    remove_units(Vars,VarValues,IDimac1,Dimac1).
+remove_units([],_,Dimac0,Dimac0).
+
 
 dpll(Dimac, Model) :-
     vars_dimac(Dimac,Vars),
@@ -67,10 +101,13 @@ dpll(Dimac, Model) :-
     dpll(VarsValues,Dimac,[]),
 	Model = VarsValues.
 
-dpll([(Var,Value)|VarValues],Dimac0,Dimac1) :-
+dpll(VarValues,Dimac0,Dimac1) :-
+    \+ empty_clause(Dimac0),
+    VarValues = [(Var,Value)|VarValues1],
+    assign_unit_clauses(VarValues,Dimac0,IDimac1),
     boolean(Value),
-    simpl((Var,Value),Dimac0,IDimac),
-    dpll(VarValues,IDimac,Dimac1).
+    simpl((Var,Value),IDimac1,IDimac2),
+    dpll(VarValues1,IDimac2,Dimac1).
 dpll([],Dimac,Dimac).
 
 
