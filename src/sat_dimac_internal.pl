@@ -1,12 +1,13 @@
-:- module(sat_dimac_internal,[  sat_internal/2,
-                                dpll/2,
-                                dpll/3,
-                                vars_dimac/2,
-                                to_positive/2,
-                                assign_free_vars/2,
-                                simpl/3,
-                                simpl_line/3
-                                ]).
+:- module(sat_dimac_internal,
+    [ sat_internal/2
+    , dpll/2
+    , dpll/3,
+    , vars_dimac/2
+    , to_positive/2
+    , assign_free_vars/2
+    , simpl/3
+    , simpl_line/3
+    ]).
 
 :- use_module(library(lists)).
 :- use_module('./parser_dimac_internal').
@@ -20,7 +21,7 @@ vars_dimac(DIMAC,Unique) :-
 
 
 to_positive([Z|Zs],[N|Ns]) :-
-    (   (0 > Z) ->
+    ((0 > Z) ->
         N is 0 - Z
     ;   N = Z),
     to_positive(Zs,Ns).
@@ -33,18 +34,18 @@ assign_free_vars([],[]).
 
 
 simpl((Var,'T'),[Line0|Lines0], Lines1) :-
-	member(Var,Line0),
-	simpl((Var,'T'),Lines0,Lines1).
+    member(Var,Line0),
+    simpl((Var,'T'),Lines0,Lines1).
 simpl((Var,'F'),[Line0|Lines0], Lines1) :-
-	NegVar is 0 - Var,
-	member(NegVar,Line0),
-	simpl((Var,'F'),Lines0,Lines1).
+    NegVar is 0 - Var,
+    member(NegVar,Line0),
+    simpl((Var,'F'),Lines0,Lines1).
 simpl((Var,Value),[Line0|Lines0], [Line1|Lines1]) :-
-	NegVar is 0 - Var,
-	\+ (member(Var,Line0), Value = 'T'),
-	\+ (member(NegVar,Line0), Value = 'F'),
-	simpl_line((Var,Value),Line0,Line1),
-	simpl((Var,Value),Lines0,Lines1).
+    NegVar is 0 - Var,
+    \+ (member(Var,Line0), Value = 'T'),
+    \+ (member(NegVar,Line0), Value = 'F'),
+    simpl_line((Var,Value),Line0,Line1),
+    simpl((Var,Value),Lines0,Lines1).
 simpl((_,_),[],[]).
 
 
@@ -65,11 +66,11 @@ empty_clause(dimac0) :-
 
 assign_unit_clauses(VarValues,Dimac0,Dimac1) :-
     get_unit_clauses(Dimac0,Units),
-    (   dif(Units,[]) ->
+    (dif(Units,[]) ->
         !,
         remove_units(Units,VarValues,Dimac0,IDimac1),
         assign_unit_clauses(VarValues,IDimac1,Dimac1)
-    ;   !, Dimac0 = Dimac1
+    ; !, Dimac0 = Dimac1
     ).
 assign_unit_clauses(_,Dimac0,Dimac0) :-
     get_unit_clauses(Dimac0,[]).
@@ -84,10 +85,10 @@ get_unit_clauses([],[]).
 
 
 remove_units([Var|Vars],VarValues,Dimac0,Dimac1) :-
-    (   Var < 0 ->
+    (Var < 0 ->
             PosVar is 0 - (Var),
             VarValue = (PosVar,'F')
-    ;   VarValue = (Var,'T')
+    ; VarValue = (Var,'T')
     ),
     member(VarValue,VarValues),
     simpl(VarValue,Dimac0,IDimac1),
